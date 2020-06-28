@@ -26,7 +26,7 @@ class KNN():
             if index[i]==self.classes[2]:
                 n[2]+=1
         m=self.argmax(n)
-        print(self.classes[m])
+        print(self.classes[m])#输出预测的标签
     def paixu(self,d,index):#将距离从小到大排列，并且将标签值对应标出
         for i in range(len(self.x)):
             for j in range(i,len(self.x)):

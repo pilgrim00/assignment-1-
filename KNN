@@ -1,0 +1,45 @@
+class KNN():
+    def  __init__(self,x,y):#x为输入数据，y为对应的标签
+        self.x=x
+        self.y=y
+        self.classes=['A','B','C']
+    def  L2distance(self,x1,x2):#计算L2距离
+        distance=0
+        for i in range(len(x1)):
+            distance+=(x1[i]-x2[i])*(x1[i]-x2[i])
+        return distance**0.5
+    def predict(self,x,k):#输入需要预测的数据和阈值k
+        d=[]
+        index=[]
+        for i in range(len(self.x)):
+            d.append(self.L2distance(x,self.x[i]))
+            index.append(self.y[i])
+        d,index=self.paixu(d,index)
+        n=[0,0,0]
+        print(d)
+        print(index)
+        for i in range(k):  #选取距离最近的K个值进行标签统计
+            if index[i] ==self.classes[0]:
+                n[0]+=1
+            if index[i] ==self.classes[1]:
+                n[1]+=1
+            if index[i]==self.classes[2]:
+                n[2]+=1
+        m=self.argmax(n)
+        print(self.classes[m])
+    def paixu(self,d,index):#将距离从小到大排列，并且将标签值对应标出
+        for i in range(len(self.x)):
+            for j in range(i,len(self.x)):
+               if d[j]<d[i]:
+                  c,e=d[j],index[j]
+                  d[j],index[j]=d[i],index[i]
+                  d[i],index[i]=c,e
+        return d,index
+    def argmax(self,x):#求序列中最大值的索引值
+        a = x[0]
+        n=0
+        for i in range(1,len(x)):
+            if a<x[i]:
+                a=x[i]
+                n=i
+        return n

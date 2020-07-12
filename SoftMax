@@ -1,1 +1,58 @@
 
+import math
+import numpy as np
+import torch
+class SoftMax():
+    def __init__(self,x,y):
+        self.x=x
+        self.y=y
+    def loss(self,score,y):
+        a=0
+        for i in range(len(score)):
+            a+=self.crossentropy(y,score)
+        return a/len(score)
+    def crossentropy(self,a,b):
+        return -(b*np.log(a)+(1-b)*np.log(1-a))
+    def lossbackward(self,score,y,w,b):
+        for i in range(len(w[0])):#728
+            for j in range(len(w[1])):#10
+                y=y[j]
+                score=score[j]
+                a=(1-y)*score-y*(1-score)
+                b=(1-score)*score
+                d1=a/b
+                dw=self.x[i]*d1
+                db=d1
+                w[i][j]=w[i][j]-dw
+                b[j]=b[j]-db
+            return w,b
+    def predict(self,x):
+        a1=len(x)
+        a2=a1**2
+        x=self.x.view(a2,-1)
+        x=x.reshape(1,a2)
+        w=np.zeros((a1,10))
+        b=np.zeros((1,10))
+        score=x.dot(w)+b
+        score=self.onehot(score)
+        y=self.onehot(y)
+        self.w,self.b=self.lossbackward(score,y,w,b)
+        return score.index(max(score))+1
+    def onehot(self,y):
+        num=len(y)
+        nums=[]
+        for i in range(num):
+            if y==i+1:
+              nums.append(1)
+            if y!=i+1:
+              nums.append(0)
+        return nums
+    def softmax(self,x):
+        a=[]
+        b=0
+        for i in range(len(x)):
+            a.append(math.exp(x[i]))
+            b+=a[i]
+        for j in range(len(x)):
+            x[i]=a[i]/b
+        return x

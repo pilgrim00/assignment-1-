@@ -3,56 +3,58 @@ import math
 import numpy as np
 import torch
 class SoftMax():
-    def __init__(self,x,y):
-        self.x=x
-        self.y=y
-    def loss(self,score,y):
+    def __init__(self):
+        self.w = (np.zeros((784, 10))+1)
+        self.b = (np.zeros((1, 10))+1)[0]
+    def loss1(self,score,y):
         a=0
         for i in range(len(score)):
             a+=self.crossentropy(y,score)
         return a/len(score)
-    def crossentropy(self,a,b):
-        return -(b*np.log(a)+(1-b)*np.log(1-a))
-    def lossbackward(self,score,y,w,b):
-        for i in range(len(w[0])):#728
-            for j in range(len(w[1])):#10
-                y=y[j]
-                score=score[j]
-                a=(1-y)*score-y*(1-score)
-                b=(1-score)*score
-                d1=a/b
+    def loss2(self,a,b):
+        loss=0
+        for i in range(10):
+            loss+=0.5*(a[i]-b[i])**2
+        return loss
+    def lossbackward(self):
+        for i in range(10):
+            y1 = self.y[i]
+            score1 = self.score[i]
+            for j in range(784):
+                d1=score1-y1
                 dw=self.x[i]*d1
-                db=d1
-                w[i][j]=w[i][j]-dw
-                b[j]=b[j]-db
-            return w,b
-    def predict(self,x):
-        a1=len(x)
-        a2=a1**2
-        x=self.x.view(a2,-1)
-        x=x.reshape(1,a2)
-        w=np.zeros((a1,10))
-        b=np.zeros((1,10))
-        score=x.dot(w)+b
-        score=self.onehot(score)
-        y=self.onehot(y)
-        self.w,self.b=self.lossbackward(score,y,w,b)
-        return score.index(max(score))+1
+                self.w[j][i]=self.w[j][i]-dw
+            self.b[i]=self.b[i]-d1
+    def predict(self,x,y):
+        x=x.reshape(1,784)
+        x=x[0]
+        self.x=x
+        self.score=x.dot(self.w)+self.b
+        out = torch.tensor(self.score)
+        self.score=torch.sigmoid(out)
+        self.y=self.onehot(y)
+        self.lossbackward()
+        return self.score
     def onehot(self,y):
-        num=len(y)
         nums=[]
-        for i in range(num):
-            if y==i+1:
+        for i in range(10):
+            if y==i:
               nums.append(1)
-            if y!=i+1:
+            if y!=i:
               nums.append(0)
         return nums
-    def softmax(self,x):
-        a=[]
+    def softmax(self,x:list):
         b=0
-        for i in range(len(x)):
-            a.append(math.exp(x[i]))
-            b+=a[i]
-        for j in range(len(x)):
-            x[i]=a[i]/b
+        for i in range(10):
+            '''f x[i]<=-1000:
+                x[i]=1
+                b+=1
+            if x[i]>=1000:
+                x[i]=1000
+                b+=1000
+            else:'''
+            x[i]=np.exp(x[i])
+            b+=x[i]
+        for j in range(10):
+            x[j]=x[j]/b
         return x

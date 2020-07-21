@@ -24,7 +24,7 @@ class FullConnectedLayer2(object):
         self.delta_array=self.output-self.label#相当于损失函数为交叉熵函数后的导数值
         self.W_grad = np.dot(self.delta_array, self.input.T)   # 计算w的梯度。梯度=误差.*输入
         self.b_grad = self.delta_array  #计算b的梯度,
-        a=self.activator.backward(self.input)
+        a=np.dot(self.W.T,self.delta_array)
         b=self.activator.backward(self.input)
         b=self.qukuohao(b)
         self.delta=np.multiply(a,b)#计算当前层的误差，以备上一层使用)
@@ -82,14 +82,14 @@ class SigmoidActivator(object):
         # return output * (1 - output)
         return np.multiply(output, (1 - output))  # 对应元素相乘
 class Twolayer(FullConnectedLayer1,FullConnectedLayer2):
-    def __init__(self, input_size, output_size,hidden_size, activator, learning_rate):
+    def __init__(self, input_size, hidden_size,output_size, activator, learning_rate):
         self.input_size = input_size
         self.hidden_size= hidden_size
         self.output_size = output_size
         self.activator = activator
         self.learning_rate=learning_rate
-        self.layer1=FullConnectedLayer1(784,100,self.activator,self.learning_rate)
-        self.layer2=FullConnectedLayer2(100,10,self.activator,self.learning_rate)
+        self.layer1=FullConnectedLayer1(self.input_size,self.hidden_size,self.activator,self.learning_rate)
+        self.layer2=FullConnectedLayer2(self.hidden_size,self.output_size,self.activator,self.learning_rate)
     def forward(self, input_array,label):
         out1=self.layer1.forward(input_array)
         out2=self.layer2.forward(out1, label)
@@ -97,4 +97,7 @@ class Twolayer(FullConnectedLayer1,FullConnectedLayer2):
         self.layer2.update()
         self.layer1.backward(self.layer2.delta)
         self.layer1.update()
-        return out2
+        return out2,self.loss(self.layer2.label,out2)
+    def loss(self,label,out):
+        label=np.array(label)
+        return -np.mean(np.multiply(np.log(out),label)+np.multiply(np.log(1-out),1-label))
